@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Ticket Booking System</title>
+    <!-- Import AngularJS and the ngRoute module -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.js"></script>
+</head>
+<body ng-app="ticketApp">
+
+    <!-- Define links for routing -->
+    <nav>
+        <a href="#!/">Home</a> | 
+        <a href="#!/about">About</a> | 
+        <a href="#!/book">Book Tickets</a> | 
+        <a href="#!/movies">Movies</a> | 
+        <a href="#!/contact">Contact</a>
+    </nav>
+
+    <!-- Where the views will be injected -->
+    <div ng-view></div>
+
+    <!-- AngularJS Application -->
+    <script>
+        // Step 1: Define a Custom Module for the Ticket Booking System
+        var bookingModule = angular.module('bookingModule', []);
+
+        // Step 2: Define a Custom Service to Simulate API for Movie List
+        bookingModule.service('MovieService', function() {
+            var movies = [
+                { name: 'The Dark Knight', genre: 'Action', price: 250, description: 'A thrilling action movie by Christopher Nolan.', cast: 'Christian Bale, Heath Ledger' },
+                { name: 'The Hangover', genre: 'Comedy', price: 300, description: 'A hilarious comedy about friends in Las Vegas.', cast: 'Bradley Cooper, Zach Galifianakis' },
+                { name: 'Bohemian Rhapsody', genre: 'Music', price: 500, description: 'The story of Freddie Mercury and Queen.', cast: 'Rami Malek, Gwilym Lee' },
+                { name: 'Inception', genre: 'Action', price: 400, description: 'A mind-bending sci-fi action film by Christopher Nolan.', cast: 'Leonardo DiCaprio, Joseph Gordon-Levitt' },
+                { name: 'The Godfather', genre: 'Drama', price: 350, description: 'A deep drama about a mafia family.', cast: 'Marlon Brando, Al Pacino' }
+            ];
+
+            // Fetch all movies
+            this.getMovies = function() {
+                return movies;
+            };
+        });
+
+        // Step 3: Create a Custom Filter to Format Prices
+        bookingModule.filter('currencyFormat', function() {
+            return function(amount) {
+                return '₹' + amount.toFixed(2); // Format the amount as INR currency
+            };
+        });
+
+        // Step 4: Define a Factory for Ticket Management
+        bookingModule.factory('TicketFactory', function() {
+            var bookedTickets = [];
+
+            return {
+                bookTicket: function(ticket) {
+                    bookedTickets.push(ticket);
+                },
+                getBookedTickets: function() {
+                    return bookedTickets;
+                }
+            };
+        });
+
+        // Step 5: Define the Main Application and Include Dependencies
+        var app = angular.module('ticketApp', ['ngRoute', 'bookingModule']);
+
+        // Step 6: Configure Routes Using the ngRoute's $routeProvider
+        app.config(function($routeProvider) {
+            $routeProvider
+            .when("/", {
+                template: "<h1>Welcome to the Advanced Ticket Booking System</h1><p>Choose an option from the menu.</p>"
+            })
+            .when("/about", {
+                template: "<h1>About Us</h1><p>Learn more about the ticket booking system here.</p>"
+            })
+            .when("/book", {
+                templateUrl: "book-tickets.html",
+                controller: 'BookingController'
+            })
+            .when("/movies", {
+                templateUrl: "movie-list.html",
+                controller: 'MovieController'
+            })
+            .when("/contact", {
+                template: "<h1>Contact Us</h1><p>Email: contact@ticketsystem.com</p>"
+            })
+            .otherwise({
+                redirectTo: "/"
+            });
+        });
+
+        // Step 7: Define the Booking Controller
+        app.controller('BookingController', function($scope, TicketFactory, MovieService) {
+            // Predefined list of shows (movies fetched from MovieService)
+            $scope.shows = MovieService.getMovies();
+
+            // Ticket booking model
+            $scope.ticket = {
+                show: null,
+                quantity: 1
+            };
+
+            // Book a ticket using the TicketFactory
+            $scope.bookTicket = function() {
+                TicketFactory.bookTicket($scope.ticket);
+                alert('Ticket for ' + $scope.ticket.show.name + ' booked successfully!');
+            };
+
+            // Get booked tickets for summary
+            $scope.getBookedTickets = function() {
+                return TicketFactory.getBookedTickets();
+            };
+        });
+
+        // Step 8: Define the Movie Controller to Display and Filter Movies with Search Functionality
+        app.controller('MovieController', function($scope, MovieService) {
+            // Fetch all movies from MovieService
+            $scope.movies = MovieService.getMovies();
+
+            // Filter genre and search keyword
+            $scope.filterGenre = '';
+            $scope.searchKeyword = '';
+
+            // Filter options
+            $scope.genres = ['All', 'Action', 'Comedy', 'Music', 'Drama'];
+
+            // Function to filter by genre
+            $scope.filterByGenre = function(genre) {
+                $scope.filterGenre = genre === 'All' ? '' : genre;
+            };
+        });
+
+        // Step 9: Create a Custom Directive for Ticket Booking Form
+        app.directive('ticketForm', function() {
+            return {
+                templateUrl: 'ticket-form.html' // Separate HTML file for the form
+            };
+        });
+    </script>
+
+    <!-- Ticket Form Template (Separate Template) -->
+    <script type="text/ng-template" id="ticket-form.html">
+        <h2>Book Your Tickets</h2>
+        <form>
+            <label for="show">Select Show:</label>
+            <select ng-model="ticket.show" ng-options="show.name for show in shows" required>
+                <option value="">--Select Show--</option>
+            </select>
+
+            <br><br>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" ng-model="ticket.quantity" min="1" required>
+
+            <br><br>
+
+            <button type="button" ng-click="bookTicket()">Book Ticket</button>
+        </form>
+
+        <h3>Booked Tickets Summary</h3>
+        <ul>
+            <li ng-repeat="ticket in getBookedTickets()">
+                {{ ticket.quantity }} ticket(s) for {{ ticket.show.name }} @ {{ ticket.show.price | currencyFormat }} each
+            </li>
+        </ul>
+    </script>
+
+    <!-- Movie List Template (Separate Template) -->
+    <script type="text/ng-template" id="movie-list.html">
+        <h2>Available Movies</h2>
+
+        <!-- Search Box for Filtering Movies -->
+        <label>Search Movies:</label>
+        <input type="text" ng-model="searchKeyword" placeholder="Search by name...">
+
+        <br><br>
+
+        <label>Filter by Genre:</label>
+        <select ng-model="selectedGenre" ng-change="filterByGenre(selectedGenre)" ng-options="genre for genre in genres">
+            <option value="">--Select Genre--</option>
+        </select>
+
+        <br><br>
+
+        <div>
+            <h3>Movie List:</h3>
+            <ul>
+                <li ng-repeat="movie in movies | filter:{genre: filterGenre} | filter:searchKeyword">
+                    <strong>{{ movie.name }}</strong> ({{ movie.genre }}) - {{ movie.price | currencyFormat }}
+                    <p><strong>Cast:</strong> {{ movie.cast }}</p>
+                    <p>{{ movie.description }}</p>
+                </li>
+            </ul>
+        </div>
+    </script>
+
+    <!-- Booking Tickets Page (Template) -->
+    <script type="text/ng-template" id="book-tickets.html">
+        <h1>Book Tickets</h1>
+        <ticket-form></ticket-form> <!-- Custom directive for booking form -->
+    </script>
+
+</body>
+</html>

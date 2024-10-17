@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myapp">
+<head>
+    <title>My First App</title>
+    <style>
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div ng-controller="validation">
+        <h2>AngularJS Code for Form Submitting</h2>
+        <form name="hello" ng-submit="formSubmit(hello.$valid)" novalidate>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" ng-model="user.username" required>
+            <span class="error" ng-show="hello.username.$error.required && hello.username.$dirty">Username Required</span>
+            <br><br>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" ng-model="user.password" required ng-minlength="6">
+            <span class="error" ng-show="hello.password.$error.required && hello.password.$dirty">Password Required</span>
+            <span class="error" ng-show="hello.password.$error.minlength && hello.password.$dirty">Password must be at least 6 characters</span>
+            <br><br>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" ng-model="user.email" required>
+            <span class="error" ng-show="hello.email.$error.required && hello.email.$dirty">Email Required</span>
+            <span class="error" ng-show="hello.email.$error.email && hello.email.$dirty">Invalid Email</span>
+            <br><br>
+
+            <label for="countries">Country</label>
+            <select id="country" name="countries" ng-model="user.country" required>
+                <option ng-repeat="count in countries" value="{{count}}">{{count}}</option>
+            </select>
+            <span class="error" ng-show="hello.countries.$error.required && hello.countries.$dirty">Choose a Country</span>
+            <br><br>
+
+            <button type="submit" ng-disabled="hello.$invalid">Submit</button>
+        </form>
+
+        <h3>
+            <ul>
+                <li ng-repeat="usr in allUsers">{{usr.username | capitalize}} {{usr.email}}</li>
+            </ul>
+        </h3>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        var app = angular.module('myapp', []);
+
+        // Filter to capitalize first letter
+        app.filter('capitalize', function () {
+            return function (input) {
+                if (input) {
+                    return input.charAt(0).toUpperCase() + input.slice(1);
+                }
+                return input;
+            };
+        });
+
+        // Service to handle user data
+        app.service('userapp', function () {
+            var users = [];
+            this.adduser = function (user) {
+                users.push(user);
+            };
+            this.getusers = function () {
+                return users;
+            };
+        });
+
+        // Factory for country data
+        app.factory('countryfactory', function () {
+            var countries = ['INDIA', 'USA', 'JAPAN'];
+            return {
+                getcountries: function () {
+                    return countries;
+                }
+            };
+        });
+
+        // Controller for form validation and submission
+        app.controller('validation', ['$scope', '$http', 'userapp', 'countryfactory', function ($scope, $http, userapp, countryfactory) {
+            $scope.user = {};
+            $scope.countries = countryfactory.getcountries();
+
+            // Form submit handler
+            $scope.formSubmit = function (valid) {
+                if (valid) {
+                    $http.post('/submit', $scope.user)
+                        .then(function (response) {
+                            console.log('User data saved:', response.data);
+                            alert('User data saved successfully!');
+                        })
+                        .catch(function (error) {
+                            console.error('Error saving user data:', error);
+                            alert('Error saving user data');
+                        });
+
+                    // Reset form
+                    $scope.user = {};
+                }
+            };
+        }]);
+    </script>
+</body>
+</html>

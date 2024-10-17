@@ -1,0 +1,44 @@
+<!-- Custom services -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+	</head>
+	<body ng-app="myApp">
+		<div ng-controller="myController">
+			<h1>Angular code for custom services.</h1>
+			<ul>
+				<li ng-repeat="user in users">{{ user.name }} - {{ user.email }}</li>
+			</ul>
+			<p ng-if="loading">Loading data</p>
+			<p ng-if="error">{{ errorMessage }}</p>
+		</div>
+		<script>
+			var app = angular.module("myApp", []);
+			app.service("userService", function($http){
+				this.getUsers = function(){
+					return $http.get("https://jsonplaceholder.typicode.com/users");
+				};
+			});
+			
+			app.controller("myController", function($scope, userService){
+				$scope.users = [];
+				$scope.loading = true;
+				$scope.error = false;
+				
+				userService.getUsers()
+					.then(function(response){
+						$scope.users = response.data;
+						$scope.loading = false;
+					
+					}, function(error){
+						$scope.error = true;
+						$scope.errorMessage = "Error fetching data";
+						$scope.loading = false;
+					});
+				
+			});
+		</script>
+	</body>
+</html>

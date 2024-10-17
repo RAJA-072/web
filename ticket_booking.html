@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Single Page Ticket Booking System</title>
+    <!-- Import AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-app="ticketApp" ng-controller="MainController">
+
+    <!-- Single Page Layout Without Any Links -->
+    <div>
+        <!-- Home Section -->
+        <h1>Welcome to the Ticket Booking System</h1>
+        <p>Below are the available movies. You can search, filter, and book your tickets!</p>
+        
+        <!-- Movies List and Search Box -->
+        <h2>Available Movies</h2>
+
+        <!-- Search Box for Filtering Movies -->
+        <label>Search Movies:</label>
+        <input type="text" ng-model="searchKeyword" placeholder="Search by name...">
+
+        <br><br>
+
+        <!-- Filter by Genre -->
+        <label>Filter by Genre:</label>
+        <select ng-model="selectedGenre" ng-change="filterByGenre(selectedGenre)" ng-options="genre for genre in genres">
+            <option value="">--Select Genre--</option>
+        </select>
+
+        <br><br>
+
+        <!-- Display Movie List -->
+        <div>
+            <ul>
+                <li ng-repeat="movie in movies | filter:{genre: filterGenre} | filter:searchKeyword">
+                    <strong>{{ movie.name }}</strong> ({{ movie.genre }}) - {{ movie.price | currencyFormat }}
+                    <p><strong>Cast:</strong> {{ movie.cast }}</p>
+                    <p>{{ movie.description }}</p>
+                </li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <!-- Book Tickets Section -->
+        <h2>Book Your Tickets</h2>
+        <form>
+            <label for="show">Select Show:</label>
+            <select ng-model="ticket.show" ng-options="show.name for show in movies" required>
+                <option value="">--Select Show--</option>
+            </select>
+
+            <br><br>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" ng-model="ticket.quantity" min="1" required>
+
+            <br><br>
+
+            <button type="button" ng-click="bookTicket()">Book Ticket</button>
+        </form>
+
+        <hr>
+
+        <!-- Booked Tickets Summary -->
+        <h3>Booked Tickets Summary</h3>
+        <ul>
+            <li ng-repeat="ticket in getBookedTickets()">
+                {{ ticket.quantity }} ticket(s) for {{ ticket.show.name }} @ {{ ticket.show.price | currencyFormat }} each
+            </li>
+        </ul>
+    </div>
+
+    <!-- AngularJS Application -->
+    <script>
+        // Step 1: Define the Application Module
+        var app = angular.module('ticketApp', []);
+
+        // Step 2: Define the Main Controller
+        app.controller('MainController', function($scope) {
+            // List of genres for filtering
+            $scope.genres = ['All', 'Action', 'Comedy', 'Music', 'Drama'];
+
+            // Movie data
+            $scope.movies = [
+                { name: 'The Dark Knight', genre: 'Action', price: 250, description: 'A thrilling action movie by Christopher Nolan.', cast: 'Christian Bale, Heath Ledger' },
+                { name: 'The Hangover', genre: 'Comedy', price: 300, description: 'A hilarious comedy about friends in Las Vegas.', cast: 'Bradley Cooper, Zach Galifianakis' },
+                { name: 'Bohemian Rhapsody', genre: 'Music', price: 500, description: 'The story of Freddie Mercury and Queen.', cast: 'Rami Malek, Gwilym Lee' },
+                { name: 'Inception', genre: 'Action', price: 400, description: 'A mind-bending sci-fi action film by Christopher Nolan.', cast: 'Leonardo DiCaprio, Joseph Gordon-Levitt' },
+                { name: 'The Godfather', genre: 'Drama', price: 350, description: 'A deep drama about a mafia family.', cast: 'Marlon Brando, Al Pacino' }
+            ];
+
+            // Filter genre and search keyword
+            $scope.filterGenre = '';
+            $scope.searchKeyword = '';
+
+            // Ticket booking model
+            $scope.ticket = {
+                show: null,
+                quantity: 1
+            };
+
+            // Booked tickets
+            var bookedTickets = [];
+
+            // Function to filter by genre
+            $scope.filterByGenre = function(genre) {
+                $scope.filterGenre = genre === 'All' ? '' : genre;
+            };
+
+            // Function to book a ticket
+            $scope.bookTicket = function() {
+                if ($scope.ticket.show && $scope.ticket.quantity > 0) {
+                    bookedTickets.push($scope.ticket);
+                    alert('Ticket for ' + $scope.ticket.show.name + ' booked successfully!');
+                    $scope.ticket = { show: null, quantity: 1 }; // Reset form
+                } else {
+                    alert('Please select a movie and quantity to book a ticket.');
+                }
+            };
+
+            // Get booked tickets
+            $scope.getBookedTickets = function() {
+                return bookedTickets;
+            };
+        });
+
+        // Step 3: Define a Custom Filter for Currency Formatting
+        app.filter('currencyFormat', function() {
+            return function(amount) {
+                return '₹' + amount.toFixed(2); // Format the amount as INR currency
+            };
+        });
+    </script>
+
+</body>
+</html>

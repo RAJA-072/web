@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Website</title>
+    <!-- Import AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-app="ecommerceApp" ng-controller="MainController">
+
+    <h1>E-Commerce Website</h1>
+    
+    <!-- Navigation Buttons -->
+    <button ng-click="showSection('home')">Home</button>
+    <button ng-click="showSection('products')">Products</button>
+    <button ng-click="showSection('cart')">Cart</button>
+    <button ng-click="showSection('checkout')">Checkout</button>
+    <button ng-click="showSection('contact')">Contact</button>
+
+    <!-- Home Section -->
+    <div ng-if="currentSection === 'home'">
+        <h2>Welcome to the E-Commerce Website</h2>
+        <p>Browse products and start shopping now!</p>
+    </div>
+
+    <!-- Products Section -->
+    <div ng-if="currentSection === 'products'">
+        <h2>Products</h2>
+
+        <!-- Search Box for Filtering Products -->
+        <label>Search Products:</label>
+        <input type="text" ng-model="searchKeyword" placeholder="Search by name...">
+        
+        <br><br>
+
+        <!-- Filter by Category -->
+        <label>Filter by Category:</label>
+        <select ng-model="selectedCategory" ng-options="category for category in categories">
+            <option value="">All</option>
+        </select>
+
+        <br><br>
+
+        <!-- Filter by Brand -->
+        <label>Filter by Brand:</label>
+        <select ng-model="selectedBrand" ng-options="brand for brand in brands">
+            <option value="">All</option>
+        </select>
+
+        <br><br>
+
+        <!-- Price Range Filter -->
+        <label>Filter by Price Range:</label>
+        <input type="number" ng-model="priceRange.min" placeholder="Min Price" min="0">
+        <input type="number" ng-model="priceRange.max" placeholder="Max Price" min="0">
+
+        <br><br>
+
+        <div>
+            <h3>Product List:</h3>
+            <ul>
+                <li ng-repeat="product in products | filter:{category: selectedCategory} | filter:{brand: selectedBrand} | filter:searchKeyword | priceFilter:priceRange">
+                    <strong>{{ product.name }}</strong> ({{ product.category }}) - {{ product.price | currencyFormat }}
+                    <p>{{ product.description }}</p>
+                    <p>Stock: {{ product.stock }}</p>
+
+                    <label>Quantity:</label>
+                    <input type="number" ng-model="quantity" min="1" max="{{ product.stock }}" value="1">
+
+                    <br>
+
+                    <button type="button" ng-click="addToCart(product, quantity)">Add to Cart</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cart Section -->
+    <div ng-if="currentSection === 'cart'">
+        <h2>Your Cart</h2>
+
+        <div ng-if="cartItems.length > 0">
+            <ul>
+                <li ng-repeat="item in cartItems">
+                    {{ item.quantity }} x {{ item.product.name }} @ {{ item.product.price | currencyFormat }} each
+                </li>
+            </ul>
+
+            <h3>Total: {{ getTotal() | currencyFormat }}</h3>
+
+            <button type="button" ng-click="showSection('checkout')">Proceed to Checkout</button>
+        </div>
+
+        <div ng-if="cartItems.length == 0">
+            <p>Your cart is empty.</p>
+        </div>
+    </div>
+
+    <!-- Checkout Section -->
+    <div ng-if="currentSection === 'checkout'">
+        <h1>Checkout</h1>
+        <p>Thanks for your order! Your payment has been processed.</p>
+    </div>
+
+    <!-- Contact Section -->
+    <div ng-if="currentSection === 'contact'">
+        <h1>Contact Us</h1>
+        <p>Email: support@ecommerce.com</p>
+    </div>
+
+    <!-- AngularJS Application -->
+    <script>
+        var app = angular.module('ecommerceApp', []);
+
+        // Main Controller
+        app.controller('MainController', function($scope, ProductService, CartFactory) {
+            // Initialize variables
+            $scope.currentSection = 'home'; // Default section
+            $scope.products = ProductService.getProducts();
+            $scope.cartItems = CartFactory.getCartItems();
+            $scope.searchKeyword = '';
+            $scope.selectedCategory = '';
+            $scope.selectedBrand = '';
+            $scope.priceRange = { min: 0, max: 150000 }; // Initialize price range
+
+            // Filter options
+            $scope.categories = ['Electronics', 'Footwear'];
+            $scope.brands = ['Apple', 'Samsung', 'Nike', 'Adidas', 'Sony'];
+
+            // Show the selected section
+            $scope.showSection = function(section) {
+                $scope.currentSection = section;
+            };
+
+            // Add item to cart
+            $scope.addToCart = function(product, quantity) {
+                CartFactory.addItemToCart(product, quantity);
+                alert(product.name + ' added to cart!');
+            };
+
+            // Get total price from cart
+            $scope.getTotal = function() {
+                return CartFactory.getTotal();
+            };
+        });
+
+        // Product Service
+        app.service('ProductService', function() {
+            var products = [
+                { name: 'iPhone 13', category: 'Electronics', brand: 'Apple', price: 120000, description: 'Latest model with improved cameras.', stock: 10 },
+                { name: 'Samsung Galaxy S21', category: 'Electronics', brand: 'Samsung', price: 95000, description: 'High performance phone with great features.', stock: 15 },
+                { name: 'Nike Air Max', category: 'Footwear', brand: 'Nike', price: 7000, description: 'Comfortable and stylish running shoes.', stock: 25 },
+                { name: 'Adidas Ultraboost', category: 'Footwear', brand: 'Adidas', price: 8000, description: 'Durable shoes for all-day wear.', stock: 20 },
+                { name: 'Sony Bravia 55"', category: 'Electronics', brand: 'Sony', price: 75000, description: 'High-definition smart TV.', stock: 8 }
+            ];
+
+            this.getProducts = function() {
+                return products;
+            };
+        });
+
+        // Cart Factory
+        app.factory('CartFactory', function() {
+            var cartItems = [];
+            return {
+                addItemToCart: function(product, quantity) {
+                    cartItems.push({ product: product, quantity: quantity });
+                },
+                getCartItems: function() {
+                    return cartItems;
+                },
+                getTotal: function() {
+                    return cartItems.reduce(function(total, item) {
+                        return total + (item.product.price * item.quantity);
+                    }, 0);
+                }
+            };
+        });
+
+        // Currency Format Filter
+        app.filter('currencyFormat', function() {
+            return function(amount) {
+                return '₹' + amount.toFixed(2); // Format the amount as INR currency
+            };
+        });
+
+        // Custom Price Range Filter
+        app.filter('priceFilter', function() {
+            return function(products, priceRange) {
+                return products.filter(function(product) {
+                    return product.price >= priceRange.min && product.price <= priceRange.max;
+                });
+            };
+        });
+    </script>
+
+</body>
+</html>

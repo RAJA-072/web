@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AngularJS Factory Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body>
+
+<div ng-controller="MainController">
+    <h1>User List</h1>
+    <ul>
+        <li ng-repeat="user in users">
+            {{ user.name }} ({{ user.email }})
+        </li>
+    </ul>
+</div>
+
+<script>
+    // Step 1: Create the AngularJS module
+    var app = angular.module('myApp', []);
+
+    // Step 2: Define the factory
+    app.factory('DataFactory', function() {
+        var users = [
+            { name: 'John Doe', email: 'john@example.com' },
+            { name: 'Jane Smith', email: 'jane@example.com' },
+            { name: 'Alice Johnson', email: 'alice@example.com' }
+        ];
+
+        return {
+            getUsers: function() {
+                return users;
+            }
+        };
+    });
+
+    // Step 3: Create a controller
+    app.controller('MainController', ['$scope', 'DataFactory', function($scope, DataFactory) {
+        $scope.users = DataFactory.getUsers(); // Get users from the factory
+    }]);
+</script>
+
+</body>
+</html>

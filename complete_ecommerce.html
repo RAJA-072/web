@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Commerce Website</title>
+    <!-- Import AngularJS and the ngRoute module -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.js"></script>
+</head>
+<body ng-app="ecommerceApp">
+
+    <!-- Define links for routing -->
+    <nav>
+        <a href="#!/">Home</a> | 
+        <a href="#!/products">Products</a> | 
+        <a href="#!/cart">Cart</a> | 
+        <a href="#!/checkout">Checkout</a> | 
+        <a href="#!/contact">Contact</a>
+    </nav>
+
+    <!-- Where the views will be injected -->
+    <div ng-view></div>
+
+    <!-- AngularJS Application -->
+    <script>
+        // Step 1: Define a Custom Module for the E-Commerce Website
+        var ecommerceModule = angular.module('ecommerceModule', []);
+
+        // Step 2: Define a Custom Service to Simulate API for Product List
+        ecommerceModule.service('ProductService', function() {
+            var products = [
+                { name: 'iPhone 13', category: 'Electronics', brand: 'Apple', price: 120000, description: 'Latest model with improved cameras.', stock: 10 },
+                { name: 'Samsung Galaxy S21', category: 'Electronics', brand: 'Samsung', price: 95000, description: 'High performance phone with great features.', stock: 15 },
+                { name: 'Nike Air Max', category: 'Footwear', brand: 'Nike', price: 7000, description: 'Comfortable and stylish running shoes.', stock: 25 },
+                { name: 'Adidas Ultraboost', category: 'Footwear', brand: 'Adidas', price: 8000, description: 'Durable shoes for all-day wear.', stock: 20 },
+                { name: 'Sony Bravia 55"', category: 'Electronics', brand: 'Sony', price: 75000, description: 'High-definition smart TV.', stock: 8 }
+            ];
+
+            // Fetch all products
+            this.getProducts = function() {
+                return products;
+            };
+        });
+
+        // Step 3: Create a Custom Filter to Format Prices
+        ecommerceModule.filter('currencyFormat', function() {
+            return function(amount) {
+                return '₹' + amount.toFixed(2); // Format the amount as INR currency
+            };
+        });
+
+        // Step 4: Define a Factory for Cart Management
+        ecommerceModule.factory('CartFactory', function() {
+            var cartItems = [];
+
+            return {
+                addItemToCart: function(product, quantity) {
+                    cartItems.push({ product: product, quantity: quantity });
+                },
+                getCartItems: function() {
+                    return cartItems;
+                },
+                getTotal: function() {
+                    return cartItems.reduce(function(total, item) {
+                        return total + (item.product.price * item.quantity);
+                    }, 0);
+                }
+            };
+        });
+
+        // Step 5: Define the Main Application and Include Dependencies
+        var app = angular.module('ecommerceApp', ['ngRoute', 'ecommerceModule']);
+
+        // Step 6: Configure Routes Using the ngRoute's $routeProvider
+        app.config(function($routeProvider) {
+            $routeProvider
+            .when("/", {
+                template: "<h1>Welcome to the E-Commerce Website</h1><p>Browse products and start shopping now!</p>"
+            })
+            .when("/products", {
+                templateUrl: "product-list.html",
+                controller: 'ProductController'
+            })
+            .when("/cart", {
+                templateUrl: "cart.html",
+                controller: 'CartController'
+            })
+            .when("/checkout", {
+                template: "<h1>Checkout</h1><p>Thanks for your order! Your payment has been processed.</p>"
+            })
+            .when("/contact", {
+                template: "<h1>Contact Us</h1><p>Email: support@ecommerce.com</p>"
+            })
+            .otherwise({
+                redirectTo: "/"
+            });
+        });
+
+        // Step 7: Define the Product Controller to Display and Filter Products
+        app.controller('ProductController', function($scope, ProductService, CartFactory) {
+            // Fetch all products from ProductService
+            $scope.products = ProductService.getProducts();
+
+            // Filter search and category
+            $scope.searchKeyword = '';
+            $scope.selectedCategory = '';
+            $scope.selectedBrand = '';
+            $scope.priceRange = { min: 0, max: 150000 }; // Initialize price range
+
+            // Filter options
+            $scope.categories = ['All', 'Electronics', 'Footwear'];
+            $scope.brands = ['All', 'Apple', 'Samsung', 'Nike', 'Adidas', 'Sony'];
+
+            // Function to filter by category
+            $scope.filterByCategory = function(category) {
+                $scope.selectedCategory = category === 'All' ? '' : category;
+            };
+
+            // Function to filter by brand
+            $scope.filterByBrand = function(brand) {
+                $scope.selectedBrand = brand === 'All' ? '' : brand;
+            };
+
+            // Function to add item to cart
+            $scope.addToCart = function(product, quantity) {
+                CartFactory.addItemToCart(product, quantity);
+                alert(product.name + ' added to cart!');
+            };
+        });
+
+        // Step 8: Define the Cart Controller to Manage Cart Items
+        app.controller('CartController', function($scope, CartFactory) {
+            // Get cart items
+            $scope.cartItems = CartFactory.getCartItems();
+
+            // Calculate total price
+            $scope.getTotal = function() {
+                return CartFactory.getTotal();
+            };
+        });
+
+    </script>
+
+    <!-- Product List Template -->
+    <script type="text/ng-template" id="product-list.html">
+    <h2>Products</h2>
+
+    <!-- Search Box for Filtering Products -->
+    <label>Search Products:</label>
+    <input type="text" ng-model="searchKeyword" placeholder="Search by name...">
+
+    <br><br>
+
+    <!-- Filter by Category -->
+    <label>Filter by Category:</label>
+    <select ng-model="selectedCategory" ng-change="filterByCategory(selectedCategory)" ng-options="category for category in categories">
+        <option value="">--Select Category--</option>
+    </select>
+
+    <br><br>
+
+    <!-- Filter by Brand -->
+    <label>Filter by Brand:</label>
+    <select ng-model="selectedBrand" ng-change="filterByBrand(selectedBrand)" ng-options="brand for brand in brands">
+        <option value="">--Select Brand--</option>
+    </select>
+
+    <br><br>
+
+    <!-- Price Range Filter -->
+    <label>Filter by Price Range:</label>
+    <input type="number" ng-model="priceRange.min" placeholder="Min Price" min="0">
+    <input type="number" ng-model="priceRange.max" placeholder="Max Price" min="0">
+
+    <br><br>
+
+    <div>
+        <h3>Product List:</h3>
+        <ul>
+            <li ng-repeat="product in products | filter:{category: selectedCategory} | filter:{brand: selectedBrand} | filter:searchKeyword | priceFilter:priceRange">
+
+                <strong>{{ product.name }}</strong> ({{ product.category }}) - {{ product.price | currencyFormat }}
+                <p>{{ product.description }}</p>
+                <p>Stock: {{ product.stock }}</p>
+
+                <label>Quantity:</label>
+                <input type="number" ng-model="quantity" min="1" max="{{ product.stock }}" value="1">
+
+                <br>
+
+                <button type="button" ng-click="addToCart(product, quantity)">Add to Cart</button>
+            </li>
+        </ul>
+    </div>
+</script>
+
+
+    <!-- Cart Template -->
+    <script type="text/ng-template" id="cart.html">
+        <h2>Your Cart</h2>
+
+        <div ng-if="cartItems.length > 0">
+            <ul>
+                <li ng-repeat="item in cartItems">
+                    {{ item.quantity }} x {{ item.product.name }} @ {{ item.product.price | currencyFormat }} each
+                </li>
+            </ul>
+
+            <h3>Total: {{ getTotal() | currencyFormat }}</h3>
+
+            <button type="button" onclick="window.location.href='#!/checkout'">Proceed to Checkout</button>
+        </div>
+
+        <div ng-if="cartItems.length == 0">
+            <p>Your cart is empty.</p>
+        </div>
+    </script>
+
+    <!-- Custom Price Range Filter -->
+    <script>
+        app.filter('priceFilter', function() {
+            return function(products, priceRange) {
+                return products.filter(function(product) {
+                    return product.price >= priceRange.min && product.price <= priceRange.max;
+                });
+            };
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AngularJS Filters Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body>
+
+<div ng-controller="MainController">
+    <h1>User Filter Example</h1>
+
+    <label for="inputText">Input Text:</label>
+    <input type="text" id="inputText" ng-model="userInput" placeholder="Enter text here">
+    
+    <label for="filterSelect">Select Filter:</label>
+    <select id="filterSelect" ng-model="selectedFilter">
+        <option value="capitalize">Capitalize</option>
+        <option value="titlecase">Title Case</option>
+        <option value="jumble">Jumble Case</option>
+        <option value="sortName">Sort by Name</option>
+        <option value="sortNumber">Sort by Price</option>
+        <option value="sortAge">Sort by Age</option>
+        <option value="priceRange">Filter by Price Range</option>
+    </select>
+
+    <div>
+        <h2>Filtered Result:</h2>
+        <p ng-if="filteredResult">{{ filteredResult }}</p>
+        <h2>Users List:</h2>
+        <ul>
+            <li ng-repeat="user in users | filter:priceFilter | orderBy:orderBy">
+                {{ user.name }} - Age: {{ user.age }} - Price: {{ user.price }}
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    var app = angular.module('myApp', []);
+
+    app.controller('MainController', ['$scope', function($scope) {
+        // Sample user data
+        $scope.users = [
+            { name: 'John Doe', age: 28, price: 30 },
+            { name: 'Jane Smith', age: 34, price: 50 },
+            { name: 'Alice Johnson', age: 22, price: 20 },
+            { name: 'Bob Brown', age: 45, price: 40 }
+        ];
+        
+        // Default filter and sorting
+        $scope.orderBy = '';
+        $scope.priceFilter = null;
+        
+        // Function to apply the selected filter
+        $scope.$watch('selectedFilter', function(newValue) {
+            switch (newValue) {
+                case 'capitalize':
+                    $scope.filteredResult = $scope.userInput ? $scope.userInput.charAt(0).toUpperCase() + $scope.userInput.slice(1) : '';
+                    break;
+                case 'titlecase':
+                    $scope.filteredResult = $scope.userInput ? $scope.userInput.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : '';
+                    break;
+                case 'jumble':
+                    $scope.filteredResult = jumbleString($scope.userInput);
+                    break;
+                case 'sortName':
+                    $scope.orderBy = 'name';
+                    $scope.filteredResult = ''; // Clear any filtered result
+                    break;
+                case 'sortNumber':
+                    $scope.orderBy = 'price';
+                    $scope.filteredResult = ''; // Clear any filtered result
+                    break;
+                case 'sortAge':
+                    $scope.orderBy = 'age';
+                    $scope.filteredResult = ''; // Clear any filtered result
+                    break;
+                case 'priceRange':
+                    $scope.priceFilter = function(user) {
+                        return user.price >= 20 && user.price <= 40; // Example range
+                    };
+                    $scope.filteredResult = ''; // Clear any filtered result
+                    break;
+                default:
+                    $scope.orderBy = '';
+                    $scope.priceFilter = null;
+                    $scope.filteredResult = ''; // Clear any filtered result
+            }
+        });
+
+        // Custom function to jumble capitalization
+        function jumbleString(input) {
+            return input.split('').map(char => {
+                return Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase();
+            }).join('');
+        }
+    }]);
+</script>
+
+</body>
+</html>
