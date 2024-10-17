@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html ng-app="registrationApp">
+<head>
+    <title>Registration Form</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        // Custom module
+        angular.module('registrationApp', [])
+            // Controller
+            .controller('RegistrationController', ['$scope', 'UserService', 'uppercaseFilter', function($scope, UserService, uppercaseFilter) {
+                $scope.user = {};
+                $scope.countries = ['India', 'USA', 'UK'];
+                $scope.register = function() {
+                    $scope.user.name = uppercaseFilter($scope.user.name);
+                    UserService.saveUser($scope.user);
+                    $scope.message = 'User Registered!';
+                };
+            }])
+            // Service
+            .service('UserService', function() {
+                this.saveUser = function(user) {
+                    console.log('User saved:', user);
+                };
+            })
+            // Filter
+            .filter('uppercase', function() {
+                return function(input) {
+                    return input.toUpperCase();
+                };
+            })
+            // Factory
+            .factory('UserFactory', function() {
+                return { createUser: function() { return {name: '', email: ''}; } };
+            });
+    </script>
+</head>
+<body ng-controller="RegistrationController">
+    <h2>Registration Form</h2>
+    <form ng-submit="register()">
+        Name: <input type="text" ng-model="user.name" required><br>
+        Email: <input type="email" ng-model="user.email" required><br>
+        Country:
+        <select ng-model="user.country">
+            <option ng-repeat="country in countries">{{country}}</option>
+        </select><br>
+        <button type="submit">Register</button>
+    </form>
+    <p>{{message}}</p>
+</body>
+</html>
