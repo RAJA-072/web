@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="eventApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        // Define the AngularJS application
+        angular.module('eventApp', [])
+            // Controller
+            .controller('EventController', ['$scope', '$http', function($scope, $http) {
+                $scope.event = {};
+                $scope.addEvent = function() {
+                    // Send POST request to the server
+                    $http.post('/add-event', $scope.event)
+                        .then(function(response) {
+                            $scope.message = response.data.message;
+                            $scope.event = {}; // Clear form after submission
+                        })
+                        .catch(function(error) {
+                            $scope.message = 'Failed to add event';
+                            console.error('Error adding event:', error);
+                        });
+                };
+            }]);
+    </script>
+</head>
+<body ng-controller="EventController">
+    <h1>Add New Event</h1>
+    <form ng-submit="addEvent()">
+        <div>
+            <label for="name">Event Name:</label>
+            <input type="text" id="name" ng-model="event.name" required>
+        </div>
+        <div>
+            <label for="date">Date:</label>
+            <input type="date" id="date" ng-model="event.date" required>
+        </div>
+        <div>
+            <label for="location">Location:</label>
+            <input type="text" id="location" ng-model="event.location" required>
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <textarea id="description" ng-model="event.description" required></textarea>
+        </div>
+        <button type="submit">Add Event</button>
+    </form>
+    <p>{{message}}</p>
+</body>
+</html>
