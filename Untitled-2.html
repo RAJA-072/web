@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f8ff; text-align: center; }
+        form { max-width: 400px; margin: 2em auto; padding: 1em; border-radius: 10px; background: #be4fe0; color: #fff; }
+        div { margin-bottom: 1em; }
+        label { display: block; margin-bottom: .5em; }
+        input, textarea { width: 100%; padding: .5em; border: none; border-radius: 5px; }
+        button { background: #4caf50; color: #fff; border: none; padding: .75em 1.5em; cursor: pointer; border-radius: 5px; }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Add New Event</h1>
+    <form action="/add-event" method="POST">
+        <div>
+            <label for="name">Event Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        <div>
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" required>
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+        <button type="submit">Add Event</button>
+    </form>
+</body>
+</html>
